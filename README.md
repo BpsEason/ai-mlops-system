@@ -36,7 +36,7 @@
 ### 1️⃣ 初始化環境（M1）
 
 ```bash
-git clone <your-repo>
+git clone https://github.com/BpsEason/ai-mlops-system.git
 cd ai-mlops-system
 cp .env.example .env  # 設定 MODEL_VERSION
 ```
