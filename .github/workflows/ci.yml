@@ -1,0 +1,41 @@
+name: CI/CD 流程
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 檢查程式碼 (Checkout code)
+        uses: actions/checkout@v4
+
+      - name: 設定 Python 環境 (Set up Python)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 安裝依賴項 (Install dependencies)
+        run: |
+          python -m pip install --upgrade pip
+          # 安裝所有依賴，包括測試框架
+          pip install -r requirements.txt
+          
+      - name: 執行單元測試 (Run Unit Tests)
+        run: |
+          echo "執行單元測試..."
+          # 這裡只運行不需要外部服務的測試 (使用 -m "not external" 標記)
+          pytest tests/test_api.py --ignore-vcs --disable-warnings -m "not external"
+          
+      - name: 構建 Docker 鏡像 (Build Docker image)
+        run: |
+          # 構建生產服務鏡像，驗證 Dockerfile 
+          docker build -t ai-teaching-system:latest .
+          echo "FastAPI 鏡像構建成功。"
