@@ -1,0 +1,13 @@
+FROM python:3.11-slim
+
+ENV PYTHONUNBUFFERED 1
+
+WORKDIR /app
+
+# 安裝 MLflow 及其依賴
+RUN pip install --no-cache-dir mlflow scikit-learn pandas numpy argparse
+
+# 複製訓練腳本
+COPY mlops /app/mlops
+
+# 預期在 docker-compose.yml 中啟動

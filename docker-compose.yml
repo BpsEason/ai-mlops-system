@@ -1,0 +1,106 @@
+version: '3.8'
+
+services:
+  # ----------------------------------------------------
+  # 1. FastAPI AI 預測服務
+  # ----------------------------------------------------
+  fastapi_app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ai-service-tutorial:latest
+    container_name: fastapi_ai_service
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app:/app/app 
+      - ./app/models:/app/app/models # 映射模型文件
+    # 引用 .env 檔案
+    env_file:
+      - .env
+    environment:
+      # MODEL_VERSION 從 .env 檔案中載入 (Maintenance)
+      MODEL_VERSION: ${MODEL_VERSION}
+      MLFLOW_TRACKING_URI: http://mlflow_server:5000
+      CRM_HOST: http://crm_mock:8001
+    depends_on:
+      - mlflow_server
+      - crm_mock
+    networks:
+      - ai_network
+      
+  # ----------------------------------------------------
+  # 2. Mock CRM 服務
+  # ----------------------------------------------------
+  crm_mock:
+    build:
+      context: .
+      dockerfile: Dockerfile 
+    image: crm-mock-service:latest
+    container_name: crm_mock_service
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./crm_mock:/app/crm_mock
+    command: ["uvicorn", "crm_mock.main:app", "--host", "0.0.0.0", "--port", "8001"]
+    networks:
+      - ai_network
+
+  # ----------------------------------------------------
+  # 3. MLflow Tracking 服務
+  # ----------------------------------------------------
+  mlflow_server:
+    build:
+      context: .
+      dockerfile: Dockerfile.mlflow
+    image: mlflow-custom:latest
+    container_name: mlflow_tracking_server
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./mlflow_data:/mlflow_data
+      - ./mlops:/app/mlops # 確保訓練腳本可以執行
+    environment:
+      ARTEFACT_ROOT: /mlflow_data/artifacts
+      MLFLOW_BACKEND_STORE_URI: sqlite:////mlflow_data/mlruns.db
+    command: mlflow server --backend-store-uri sqlite:////mlflow_data/mlruns.db --default-artifact-root /mlflow_data/artifacts --host 0.0.0.0
+    networks:
+      - ai_network
+
+  # ----------------------------------------------------
+  # 4. Prometheus 監控服務
+  # ----------------------------------------------------
+  prometheus:
+    image: prom/prometheus:v2.47.1
+    container_name: prometheus_server
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    networks:
+      - ai_network
+
+  # ----------------------------------------------------
+  # 5. Grafana 視覺化服務
+  # ----------------------------------------------------
+  grafana:
+    image: grafana/grafana:10.2.2
+    container_name: grafana_dashboard
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - ./grafana_config/provisioning:/etc/grafana/provisioning
+      - ./grafana_config/dashboards:/var/lib/grafana/dashboards
+    depends_on:
+      - prometheus
+    networks:
+      - ai_network
+      
+networks:
+  ai_network:
+    driver: bridge

@@ -1,0 +1,63 @@
+# AI 模型整合與部署教學系統 - MLOps 評量標準 (Rubric)
+
+# 總評量：
+# 1. 專案結構與文件完整度 (M1)
+# 2. 模型服務化與 Docker 容器化 (M2)
+# 3. MLOps 實驗追蹤與模型版本管理 (M3)
+# 4. 跨系統整合與業務邏輯實作 (M4)
+# 5. 監控與可觀測性建置 (M5)
+# 6. 自動化測試與驗收流程 (M6)
+
+rubric:
+  M1_Project_Setup:
+    title: "M1: 專案初始化與結構定義"
+    description: "確保專案結構合理，環境配置正確。"
+    criteria:
+      C1: {desc: "完成 Docker/Python/CLI 環境設置。", badge: "Setup"}
+      C2: {desc: "專案目錄結構符合 MLOps 最佳實踐 (app, mlops, crm_mock, tests)。", badge: "Structure"}
+      C3: {desc: "requirements.txt 依賴管理清晰。", badge: "Dependencies"}
+      
+  M2_Service_Deployment:
+    title: "M2: 模型服務化與部署"
+    description: "將 AI 模型包裝成 Web 服務並實現容器化部署。"
+    criteria:
+      C1: {desc: "FastAPI 服務成功啟動，並暴露 /predict 端點。", badge: "API-Ready"}
+      C2: {desc: "FastAPI 服務使用 Pydantic 實現輸入數據驗證。", badge: "Data-Valid"}
+      C3: {desc: "模型檔案 (sample_model.joblib) 成功被 FastAPI 服務載入。", badge: "Model-Loaded"}
+      C4: {desc: "服務具備 /health 健康檢查端點，並返回正確狀態。", badge: "Healthy"}
+      C5: {desc: "FastAPI 和 CRM Mock 服務容器化 (Dockerfile) 且使用非 root 用戶。", badge: "Containerized"}
+      
+  M3_MLflow_Tracking:
+    title: "M3: MLOps 實驗與版本管理"
+    description: "利用 MLflow 實現實驗追蹤和模型版本控制。"
+    criteria:
+      C1: {desc: "訓練腳本成功記錄模型超參數 (如 C_param, n_samples) 和評估指標 (accuracy) 至 MLflow。", badge: "MLflow-Log"}
+      C2: {desc: "模型被註冊到 MLflow Model Registry。", badge: "Model-Reg"}
+      C3: {desc: "可透過 MLflow UI 瀏覽實驗結果和模型版本。", badge: "UI-Check"}
+      C4: {desc: "模型版本標籤 (MODEL_VERSION) 成功被訓練腳本記錄。", badge: "Version-Tag"}
+      
+  M4_System_Integration:
+    title: "M4: 跨系統整合與業務邏輯"
+    description: "實現 AI 服務與外部系統 (CRM) 的互動流程。"
+    criteria:
+      C1: {desc: "AI 服務實現非同步 HTTP 請求，成功呼叫 CRM Mock 的特徵獲取與分群更新 API。", badge: "Integration"}
+      C2: {desc: "AI 服務實現業務邏輯，根據預測結果 (0/1) 判斷並設定特定的分群標籤。", badge: "Biz-Logic"}
+      C3: {desc: "CRM Mock 服務成功接收 AI 服務的更新請求，並更新客戶資料。", badge: "CRM-Update"}
+      
+  M5_Monitoring_Observability:
+    title: "M5: 監控與可觀測性 (M&O)"
+    description: "建立 Prometheus 和 Grafana 監控堆棧，收集服務指標。"
+    criteria:
+      C1: {desc: "FastAPI 服務暴露 Prometheus /metrics 端點。", badge: "Metrics-API"}
+      C2: {desc: "Prometheus 成功抓取 FastAPI 服務的指標。", badge: "Prom-Ready"}
+      C3: {desc: "應用程式指標 (如 \`http_requests_total\`, \`ai_model_loaded\` Gauge) 正確被定義和使用。", badge: "App-Metrics"}
+      C4: {desc: "Grafana 成功啟動，並自動載入 AI 服務的儀表板。", badge: "Grafana-Dash"}
+      
+  M6_Testing_Validation:
+    title: "M6: 自動化測試與驗收"
+    description: "使用自動化測試確保服務功能的正確性與穩定性。"
+    criteria:
+      C1: {desc: "單元測試腳本 (tests/test_api.py) 成功驗證 /health 和 /predict 端點的基本功能。", badge: "Unit-Test"}
+      C2: {desc: "單元測試排除需要外部服務的集成測試。", badge: "Unit-Isolate"}
+      C3: {desc: "集成測試腳本成功執行跨服務驗證，確認 AI 服務能正確更新 CRM 數據。", badge: "E2E-Valid"}
+      C4: {desc: "專案包含 CI/CD 工作流程 (GitHub Actions) 並成功執行測試和建構步驟。", badge: "CI-Flow"}
